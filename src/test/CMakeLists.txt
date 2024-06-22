@@ -14,6 +14,7 @@ target_include_directories(tests PRIVATE
 target_link_libraries(tests PRIVATE
         catch2::catch2_with_main
         common
+        ${CMAKE_DL_LIBS}
 )
 
 catch_discover_tests(tests)

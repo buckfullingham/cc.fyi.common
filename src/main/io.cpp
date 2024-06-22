@@ -3,8 +3,6 @@
 #include <cassert>
 #include <utility>
 
-#include <sys/socket.h>
-
 namespace ns = common::io;
 
 ns::file_descriptor::file_descriptor(file_descriptor &&that) noexcept
@@ -25,7 +23,7 @@ int ns::file_descriptor::release() noexcept {
 
 void ns::file_descriptor::reset() noexcept {
   if (auto released = release(); released != -1)
-    ::close(released);
+    TEMP_FAILURE_RETRY(::close(released));
 }
 
 ns::file_descriptor::~file_descriptor() noexcept { reset(); }

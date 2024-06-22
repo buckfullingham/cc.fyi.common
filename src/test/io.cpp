@@ -5,8 +5,23 @@
 #include <random>
 #include <string_view>
 
+#include <dlfcn.h>
+
 namespace ns = common::io;
 using namespace std::literals;
+
+namespace {
+int close_count = 0;
+}
+
+int close(int fd) {
+  static auto real_close =
+      reinterpret_cast<decltype(&::close)>(::dlsym(RTLD_NEXT, "close"));
+  CHECK(fd != -1);
+  const auto result = real_close(fd);
+  ++close_count;
+  return result;
+}
 
 TEST_CASE("ring_buffer") {
   ns::ring_buffer rb(1 << 12);
@@ -67,4 +82,35 @@ TEST_CASE_METHOD(ofstreambuf_fixture, "failure to write marks stream bad") {
   os.flush();
   CHECK(os.bad());
   CHECK(!os.good());
+}
+
+TEST_CASE("construct and destruct file_descriptor") {
+  close_count = 0;
+  {
+    common::io::file_descriptor from(::memfd_create, "", 0);
+    CHECK(close_count == 0);
+  }
+  CHECK(close_count > 0);
+}
+
+TEST_CASE("move assignment of file_descriptor") {
+  close_count = 0;
+  {
+    common::io::file_descriptor from(::memfd_create, "", 0);
+    common::io::file_descriptor to(::memfd_create, "", 0);
+    CHECK(close_count == 0);
+    to = std::move(from);
+    CHECK(std::exchange(close_count, 0) > 0);
+  }
+  CHECK(close_count > 0);
+}
+
+TEST_CASE("move construction of file_descriptor") {
+  close_count = 0;
+  {
+    common::io::file_descriptor from(::memfd_create, "", 0);
+    common::io::file_descriptor to(std::move(from));
+    CHECK(close_count == 0);
+  }
+  CHECK(close_count > 0);
 }
