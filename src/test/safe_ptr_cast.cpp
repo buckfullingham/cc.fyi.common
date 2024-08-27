@@ -14,6 +14,7 @@ struct some_struct {
 
 TEST_CASE("valid safe_ptr_cast") {
   some_struct s{};
+  s.c = 42;
 
   char *const ptr = reinterpret_cast<char *>(&s);
   const std::size_t len = sizeof(some_struct);
@@ -22,7 +23,7 @@ TEST_CASE("valid safe_ptr_cast") {
       std::is_same_v<some_struct *,
                      decltype(common::safe_ptr_cast<some_struct>(ptr, len))>);
 
-  CHECK(common::safe_ptr_cast<some_struct>(ptr, len));
+  CHECK(common::safe_ptr_cast<some_struct>(ptr, len)->c == 42);
 }
 
 TEST_CASE("invalid size safe_ptr_cast") {

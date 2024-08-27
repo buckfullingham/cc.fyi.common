@@ -4,7 +4,7 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 
 class Recipe(ConanFile):
     name = "cc.fyi.common"
-    version = "0.1"
+    version = "0.2"
     package_type = "library"
 
     # Binary configuration

@@ -25,34 +25,34 @@ concept safe_ptr_castable_to = std::is_trivially_copyable_v<T>;
  * c.f.
  * https://arech.github.io/2024-08-17-reinterpret_cast-ub-and-a-pointer-casting-in-c++
  */
-template <safe_ptr_castable_to T, safe_ptr_castable_from U>
-T *safe_ptr_cast(U *const data, const std::size_t size) {
+template <safe_ptr_castable_to To, safe_ptr_castable_from From>
+To *safe_ptr_cast(From *const data, const std::size_t size) {
   // verify buffer size
-  if (size < sizeof(T))
+  if (size < sizeof(To))
     throw std::runtime_error("safe_ptr_cast: size too small");
 
-  // verify the pointer is properly aligned to contain T underneath
-  if (reinterpret_cast<std::uintptr_t>(data) % alignof(T) != 0)
+  // verify the pointer is properly aligned to contain To underneath
+  if (reinterpret_cast<std::uintptr_t>(data) % alignof(To) != 0)
     throw std::runtime_error("safe_ptr_cast: misaligned data");
 
   // just a byte array, a temporary storage to backup the original mem
   // representation, since it can be distorted later
-  U buf[sizeof(T)];
-  std::memcpy(&buf[0], data, sizeof(T));
+  From buf[sizeof(To)];
+  std::memcpy(&buf[0], data, sizeof(To));
 
-  // starting lifetime of T inside the data and perform non-vacuous
+  // starting lifetime of To inside the data and perform non-vacuous
   // initialization https://timsong-cpp.github.io/cppwp/n4659/basic.life#1.2
   // that could change the underlying memory. Previous content is implicitly
   // destroyed https://timsong-cpp.github.io/cppwp/n4659/basic.life#5
-  // Starting lifetime of T is mandatory because
+  // Starting lifetime of To is mandatory because
   // https://timsong-cpp.github.io/cppwp/n4659/basic.life#4
-  T *ptr = new (data) T;
+  To *ptr = new (data) To;
 
   // replacing byte representation
-  std::memcpy(ptr, &buf[0], sizeof(T));
+  std::memcpy(ptr, &buf[0], sizeof(To));
 
   // now *ptr is created in data memory buffer, it has its lifetime started and
-  // it has a proper byte representation. Since T is trivially copyable, it has
+  // it has a proper byte representation. Since To is trivially copyable, it has
   // a trivial destructor, so there's no special need to call a destructor to
   // end its lifetime.
   return ptr;
