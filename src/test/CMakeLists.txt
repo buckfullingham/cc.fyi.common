@@ -5,6 +5,7 @@ include(Catch)
 add_executable(tests
         io.cpp
         util.cpp
+        safe_ptr_cast.cpp
 )
 
 target_include_directories(tests PRIVATE
@@ -12,7 +13,7 @@ target_include_directories(tests PRIVATE
 )
 
 target_link_libraries(tests PRIVATE
-        catch2::catch2_with_main
+        Catch2::Catch2WithMain
         common
         ${CMAKE_DL_LIBS}
 )
