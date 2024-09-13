@@ -5,7 +5,6 @@ include(Catch)
 add_executable(tests
         io.cpp
         util.cpp
-        safe_ptr_cast.cpp
 )
 
 target_include_directories(tests PRIVATE

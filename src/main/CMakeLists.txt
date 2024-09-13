@@ -12,3 +12,13 @@ target_include_directories(common PUBLIC
 target_link_libraries(common PRIVATE
         ${unordered_dense_LIBRARIES}
 )
+
+set_target_properties(common PROPERTIES PUBLIC_HEADER
+        "../../include/common/io.hpp;../../include/common/util.hpp"
+)
+
+install(
+        TARGETS common
+        LIBRARY DESTINATION lib
+        PUBLIC_HEADER DESTINATION include/common
+)

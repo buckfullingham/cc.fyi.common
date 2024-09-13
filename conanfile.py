@@ -13,7 +13,7 @@ class Recipe(ConanFile):
     default_options = {"shared": False, "fPIC": True}
 
     requires = [
-        "onetbb/2021.12.0",
+        "onetbb/2021.10.0",
         "unordered_dense/4.4.0",
         "catch2/3.5.2",
     ]
@@ -29,8 +29,8 @@ class Recipe(ConanFile):
         if self.options.shared:
             self.options.rm_safe("fPIC")
 
-    # def layout(self):
-    #     cmake_layout(self, build_folder=f"cmake-build-{str(self.settings.build_type).lower()}")
+    def layout(self):
+        cmake_layout(self)
 
     def generate(self):
         deps = CMakeDeps(self)
@@ -48,4 +48,4 @@ class Recipe(ConanFile):
         cmake.install()
 
     def package_info(self):
-        pass
+        self.cpp_info.libs = ["common"]

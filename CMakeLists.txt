@@ -19,3 +19,4 @@ set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 enable_testing()
 
 add_subdirectory(src)
+add_subdirectory(include)

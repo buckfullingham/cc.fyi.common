@@ -5,10 +5,12 @@
 
 #include <functional>
 #include <stdexcept>
+#include <span>
 #include <streambuf>
 #include <system_error>
 
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -34,9 +36,14 @@ inline auto posix_call(Function function, Args... args)
   return result;
 }
 
+
 /**
  * RAII wrapper around a file descriptor that calls ::close() on destruction.
  */
+class file_descriptor;
+
+void swap(file_descriptor &lhs, file_descriptor &rhs) noexcept;
+
 class file_descriptor {
   friend void swap(file_descriptor &, file_descriptor &) noexcept;
 
@@ -60,11 +67,13 @@ private:
   int value_;
 };
 
-void swap(file_descriptor &lhs, file_descriptor &rhs) noexcept;
-
 /**
  * RAII wrapper around a memory mapping that calls ::munmap on destruction.
  */
+class memory_map;
+
+void swap(memory_map &, memory_map &) noexcept;
+
 class memory_map {
   friend void swap(memory_map &, memory_map &) noexcept;
 
@@ -78,6 +87,11 @@ public:
 
   [[nodiscard]] std::tuple<void *, std::size_t> value() const noexcept;
 
+  template<typename T>
+  [[nodiscard]] std::span<T> as_span() const noexcept {
+    return std::span<T>(static_cast<T*>(ptr_), len_ / sizeof(T));
+  }
+
   std::tuple<void *, std::size_t> release() noexcept;
 
   void reset() noexcept;
@@ -88,8 +102,6 @@ private:
   void *ptr_;
   std::size_t len_;
 };
-
-void swap(memory_map &lhs, memory_map &rhs) noexcept;
 
 class ring_buffer {
 public:
@@ -127,6 +139,12 @@ private:
   std::size_t read_index_;
   std::size_t write_index_;
 };
+
+inline struct ::stat fstat(int fd) {
+  struct ::stat st;
+  posix_call(::fstat, fd, &st);
+  return st;
+}
 
 } // namespace common::io
 
